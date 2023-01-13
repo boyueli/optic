@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>indexDb首次学习</title>
+</head>
+<body>
+<div id="status">
+	123
+</div>
+<button id = "select">查询 select</button>
+	<script>
+	// indexedDB 不能存function等非结构化的数据，object必须是以键值对组成的字面对象。
+	// 创建 objectStore 和修改 objectStore 都只能在 db 的 onupgradeneeded 事件中进行，因此，要创建 objectStore，
+	/*
+	
+	*/
+	// 打开数据库
+		const request = window.indexedDB.open('mydb', 1) // 后面的1表示的是版本号 在使用的时候因为需要进行对数据的处理，就是生成的这个request对象，（后面需要使用的是这个）所以版本指定了以后才能够从指定的版本当中获取到相应的数据
+		
+		request.onupgradeneeded = (e) => {
+		  const db = e.target.result
+		  if(!db.objectStoreNames.contains('mystore')){
+			db.createObjectStore('mystore', { keyPath: 'id' })
+		  }
+		}
+
+		let db
+		request.onsuccess = e => { // 这个因为request 是执行了 onupgradeneeded 方法，所以其内部的对 这个数据库添加的方法是不能够执行的 ， 所以才会没有用
+			console.log(e,'e')
+			db = e.target.result // 这里的db表示的是一个容器，用来装数据的容器
+		  
+			let transaction = db.transaction(['mystore'], 'readwrite')
+			let objectStore = transaction.objectStore('mystore')
+			let req = objectStore.get('id')
+			console.log(objectStore , req,'adsad')
+			
+			let request = objectStore.add({
+			  id: '100002',
+			  name: 'Zhang Fei',
+			})
+			console.log(request,'request1')
+			objectStore.add({
+			  id: '100003',
+			  name: 'Zhang Feiasd',
+			})
+			objectStore.add({
+			  id: '100004',
+			  name: 'Guan Yu',
+			})
+			console.log(objectStore,'objectStore')
+		}
+		
+		// 事务管理  增加数据
+		document.querySelector('#status').onclick = function() { // 下面的这整个数据是一个整体所以在数据上面的时候能够读取成功，（一个事务，所以能够正常的写入操作）
+		  let request = indexedDB.open('mydb', 1)
+		  console.log(request,'123')
+		  request.onsuccess = function(e) {
+			let db = e.target.result
+			let tx = db.transaction(["mystore"],"readwrite")
+			let objectStore = tx.objectStore("mystore")
+			let request = objectStore.add({id:'100007',name:"伯约123" , age:24  })  // 在这里id是必须的，并且还要有的所以在设置的时候id需要设置不一样的才能够添加进去
+			let a = objectStore.get("100003")
+			console.log(a,'100003')
+		  }
+		}
+		// 查询数据
+		document.querySelector('#select').onclick = function() { // 下面的这整个数据是一个整体所以在数据上面的时候能够读取成功，（一个事务，所以能够正常的写入操作）
+		  let request = indexedDB.open('mydb', 1)
+		  console.log(request,'123')
+		  request.onsuccess = function(e) {
+		  console.log(e,'e')
+			let db = e.target.result
+			let tx = db.transaction(["mystore"],"readwrite")
+			let objectStore = tx.objectStore("mystore")
+			// let request = objectStore.add({id:'100007',name:"伯约123" , age:24  })  // 在这里id是必须的，并且还要有的所以在设置的时候id需要设置不一样的才能够添加进去
+			let a = objectStore.get("100003")
+			console.log(a,'100003')
+			
+			/*let obj = a.result
+			console.label(obj,'obj')*/
+			
+			// 读取数据的时候不许要在a成功以后执行才可以，不然是读取不到数据的（在 回调函数后面以后）
+			a.onsuccess = e => {
+			  console.log(a.result,'request.result')
+			  // 等价于
+			  console.log(e.target.result,'e.tareget.result')
+			}
+			
+		  }
+		}
+		// 遍历数据
+		
+		/* request.onsuccess = e => {
+		let results = []
+		  let cursor = e.target.result
+		  
+		  
+		  if (cursor) {
+			results.push(cursor.value)
+			console.log(cursor,'cursor')
+			cursor.continue()
+			
+		  }else {
+			// 所有的object都在results里面
+		  }
+		}*/
+		
+		/*const request2 = window.indexedDB.open('mydb', 1)
+		request2.onsuccess = e=>{
+			let db = e.target.result
+			let objectStore = db.transaction(['mystore'], 'readonly').objectStore('mystore')
+			let objectIndex = objectStore.index('id')
+			let request1 = objectIndex.openCursor()
+			request1.onsuccess = e => {
+			  let cursor = e.target.result
+			  if (cursor) {
+				results.push(cursor.value)
+				cursor.continue()
+			  }
+			  else {
+				// 所有的 object 都在 results 里面
+			  }
+			}
+		}
+		*/
+	</script>
+</body>
+</html>
+
